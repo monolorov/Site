@@ -1,1 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Monolorov — Bio</title>
+  <meta name="description" content="Monolorov — Frontend Dev | 18 y.o. | Lawyer | contact us for conflicts | ready to resolve the situation">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Интер + JetBrains Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
+  <style>
+    :root{
+      --bg:#0b0b0c;
+      --fg:#f5f5f6;
+      --muted:#bdbdc2;
+      --card-bg:rgba(255,255,255,0.06);
+      --border:rgba(255,255,255,0.12);
+      --accent:#ffffff;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji", sans-serif;
+      color:var(--fg);
+      background: radial-gradient(1200px 800px at 20% -10%, #1a1a1e 0%, #0b0b0c 60%),
+                  radial-gradient(800px 600px at 100% 0%, #151519 0%, #0b0b0c 70%);
+      overflow-x:hidden;
+    }
+
+    /* Фоновый шум для «стекла» */
+    .noise::before{
+      content:"";
+      position:fixed; inset:0;
+      background-image:url("data:image/svg+xml;utf8,\
+        <svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'>\
+          <filter id='n'>\
+            <feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/>\
+            <feColorMatrix type='saturate' values='0'/>\
+            <feComponentTransfer><feFuncA type='table' tableValues='0 0.03'/></feComponentTransfer>\
+          </filter>\
+          <rect width='100%' height='100%' filter='url(%23n)'/>\
+        </svg>");
+      opacity:.8; pointer-events:none;
+      mix-blend-mode:soft-light;
+    }
+
+    /* Плавающие «световые пятна» */
+    .blob{
+      position:fixed; width:42rem; height:42rem; border-radius:50%;
+      filter: blur(80px); opacity:.22; pointer-events:none;
+      transform:translate(-50%, -50%);
+      animation: drift 18s ease-in-out infinite alternate;
+      mix-blend-mode:screen;
+    }
+    .blob.b1{ left:15%; top:10%; background:linear-gradient(120deg,#ffffff 0%, #cfcfd4 60%, #8a8a93 100%); }
+    .blob.b2{ left:85%; top:8%;  background:linear-gradient(120deg,#f0f0f7 0%, #c9c9d1 60%, #7a7a84 100%); animation-duration:22s;}
+    .blob.b3{ left:50%; top:90%; background:linear-gradient(120deg,#ffffff 0%, #bdbdc6 60%, #6e6e77 100%); animation-duration:26s;}
+    @keyframes drift{ from{transform:translate(-50%,-50%) scale(1)} to{transform:translate(-48%,-52%) scale(1.08)} }
+
+    /* Контейнер */
+    .wrap{
+      position:relative;
+      min-height:100dvh;
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+    }
+
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:20px clamp(16px, 4vw, 48px);
+      position:sticky; top:0; z-index:5;
+      backdrop-filter:saturate(140%) blur(12px);
+      background:linear-gradient(180deg, rgba(12,12,14,.75), rgba(12,12,14,0));
+      border-bottom:1px solid var(--border);
+    }
+    .brand{display:flex; gap:12px; align-items:center}
+    .logo{
+      width:36px; height:36px; border-radius:12px;
+      display:grid; place-items:center;
+      background:linear-gradient(160deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
+      border:1px solid var(--border);
+      box-shadow:0 6px 24px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08);
+      font-family:"JetBrains Mono", monospace; font-weight:800; letter-spacing:.5px;
+    }
+    .brand h1{margin:0; font-size:18px; font-weight:800; letter-spacing:.4px}
+
+    .nav{display:flex; gap:10px}
+    .btn{
+      --pad:12px;
+      padding:10px var(--pad);
+      border:1px solid var(--border);
+      background:var(--card-bg);
+      color:var(--fg); text-decoration:none; border-radius:14px;
+      backdrop-filter: blur(10px) saturate(130%);
+      transition: transform .15s ease, border-color .2s ease, background .2s ease;
+      display:inline-flex; align-items:center; gap:10px;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color:rgba(255,255,255,.22); background:rgba(255,255,255,.09); }
+    .btn:active{ transform: translateY(0); }
+    .btn.primary{ background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.06)); }
+
+    main{
+      padding: clamp(20px, 5vw, 64px);
+      display:grid; place-items:center; z-index:1;
+    }
+
+    .card{
+      width:min(1100px, 95vw);
+      border:1px solid var(--border);
+      border-radius:24px;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      backdrop-filter:blur(14px) saturate(140%);
+      box-shadow:
+        0 30px 80px rgba(0,0,0,.55),
+        inset 0 1px 0 rgba(255,255,255,.10);
+      padding: clamp(20px, 4.8vw, 56px);
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* Заголовок */
+    .hero{
+      display:grid; gap:16px; margin-bottom:28px;
+    }
+    .kicker{
+      font-size:12px; letter-spacing:.28em; text-transform:uppercase; color:var(--muted);
+    }
+    .title{
+      font-size:clamp(32px, 6vw, 64px);
+      line-height:1.04; margin:0; font-weight:800;
+      letter-spacing:-.02em;
+      text-wrap:balance;
+    }
+    .subtitle{
+      color:#d9d9de;
+      font-size:clamp(14px, 2.8vw, 18px);
+      line-height:1.6;
+    }
+
+    /* Сетка карточек */
+    .grid{
+      display:grid; gap:14px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .tile{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.04);
+      border-radius:18px; padding:18px;
+      transition: border-color .2s ease, transform .2s ease, background .2s ease;
+    }
+    .tile:hover{ border-color:rgba(255,255,255,.22); background:rgba(255,255,255,.06); transform:translateY(-1px); }
+    .span-7{ grid-column: span 7; }
+    .span-5{ grid-column: span 5; }
+    @media (max-width:920px){
+      .span-7, .span-5{ grid-column: 1 / -1; }
+    }
+
+    .h{
+      font-size:12px; text-transform:uppercase; letter-spacing:.18em; color:var(--muted); margin:0 0 10px;
+    }
+    .p{ margin:0; color:#e7e7ea; }
+    .mono{ font-family:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .list{ margin:10px 0 0; padding:0; list-style:none; display:grid; gap:8px; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
+      border:1px solid var(--border); border-radius:999px;
+      background:rgba(255,255,255,.04);
+      font-size:13px;
+    }
+
+    footer{
+      padding:24px clamp(16px, 4vw, 48px);
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+      color:var(--muted);
+      border-top:1px solid var(--border);
+      background:linear-gradient(0deg, rgba(12,12,14,.75), rgba(12,12,14,0));
+      backdrop-filter:saturate(140%) blur(8px);
+    }
+
+    /* Малая анимация появления */
+    .fade-up{opacity:0; transform:translateY(8px); animation:fadeUp .6s ease forwards; }
+    .fade-up.d2{animation-delay:.06s}
+    .fade-up.d3{animation-delay:.12s}
+    .fade-up.d4{animation-delay:.18s}
+    @keyframes fadeUp{to{opacity:1; transform:none}}
+
+    /* Иконки (базовые) */
+    .icon{width:18px; height:18px; display:inline-block}
+    .muted{ color:var(--muted); }
+    a.link{ color:var(--fg); text-decoration:none; border-bottom:1px dashed rgba(255,255,255,.25); }
+    a.link:hover{ border-bottom-color:#fff; }
+  </style>
+</head>
+
+<body class="noise">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">ML</div>
+        <h1>Monolorov</h1>
+      </div>
+      <nav class="nav">
+        <a class="btn" href="#contact" aria-label="Контакты">
+          <!-- envelope -->
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16v12H4z"/><path d="m22 6-10 7L2 6"/></svg>
+          Contact
+        </a>
+        <a class="btn primary" href="#work" aria-label="Проекты">
+          <!-- grid -->
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/></svg>
+          Work
+        </a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="card fade-up">
+        <div class="hero">
+          <div class="kicker">BIO • 2025 STYLE</div>
+          <h2 class="title">Monolorov</h2>
+          <p class="subtitle">
+            <span class="mono">Frontend Dev | 18 y.o.</span><br>
+            Lawyer | contact us for conflicts | ready to resolve the situation
+          </p>
+          <div class="nav" style="margin-top:6px">
+            <!-- Замените ссылки на свои -->
+            <a class="btn" href="https://github.com/" target="_blank" rel="noopener">
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5A12 12 0 0 0 0 12.7c0 5.4 3.4 10 8.1 11.6.6.1.8-.3.8-.6v-2.2c-3.3.8-4-1.6-4-1.6-.5-1.4-1.3-1.8-1.3-1.8-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 .1.8-1 .8-1 .9-1.6 2.4-1.1 2.9-.8.1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.4-5.5-6.1 0-1.3.5-2.4 1.2-3.3 0-.3-.5-1.6.1-3.3 0 0 1-.3 3.3 1.2a11.2 11.2 0 0 1 6 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.7.2 3 .1 3.3.8.9 1.2 2 1.2 3.3 0 4.7-2.8 5.8-5.5 6.1.4.3.8 1 .8 2.1v3.1c0 .3.2.7.8.6C20.6 22.7 24 18.1 24 12.7A12 12 0 0 0 12 .5Z"/></svg>
+              GitHub
+            </a>
+            <a class="btn" href="#contact">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10a9 9 0 1 1-8-8"/></svg>
+              Hire
+            </a>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="tile span-7 fade-up d2">
+            <p class="h">Фокус</p>
+            <p class="p">Создаю быстрые интерфейсы с чистой архитектурой и вниманием к микровзаимодействиям. Ценю минимализм, контраст и предсказуемость UX.</p>
+            <ul class="list" style="margin-top:12px">
+              <li class="pill">React / Next.js</li>
+              <li class="pill">TypeScript</li>
+              <li class="pill">Tailwind / CSS Modules</li>
+              <li class="pill">Vite / SSR</li>
+              <li class="pill">A11y / i18n</li>
+            </ul>
+          </div>
+
+          <div class="tile span-5 fade-up d2">
+            <p class="h">Статус</p>
+            <p class="p">Открыт к сотрудничеству и сложным кейсам. Готов подключаться к конфликтным ситуациям в правовом поле и помогать закрывать вопросы.</p>
+            <ul class="list">
+              <li class="pill">Available • part-time</li>
+              <li class="pill">Response • &lt;24h</li>
+              <li class="pill">Timezone • GMT+3</li>
+            </ul>
+          </div>
+
+          <div class="tile span-5 fade-up d3" id="work">
+            <p class="h">Недавние проекты</p>
+            <ul class="list">
+              <li class="pill">Landing • Glass UI</li>
+              <li class="pill">Dashboard • Charts</li>
+              <li class="pill">Design System • Tokens</li>
+            </ul>
+            <p class="p muted" style="margin-top:10px">Портфолио и демо по запросу.</p>
+          </div>
+
+          <div class="tile span-7 fade-up d3" id="contact">
+            <p class="h">Связаться</p>
+            <div class="nav" style="flex-wrap:wrap">
+              <!-- Замените href на актуальные контакты -->
+              <a class="btn" href="mailto:example@mail.com">
+                <!-- at -->
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="7"/><path d="M16 12v3a2 2 0 0 0 4 0v-3a8 8 0 1 0-3.1 6.3"/></svg>
+                Email
+              </a>
+              <a class="btn" href="https://t.me/" target="_blank" rel="noopener">
+                <!-- paper plane -->
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                Telegram
+              </a>
+              <a class="btn" href="https://discord.com/users/" target="_blank" rel="noopener">
+                <!-- message square -->
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+                Discord
+              </a>
+              <a class="btn" href="https://linkedin.com/" target="_blank" rel="noopener">
+                <!-- briefcase -->
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                LinkedIn
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>© <span id="y"></span> Monolorov</span>
+      <span>Made with minimalism • Glass UI</span>
+    </footer>
+  </div>
+
+  <script>
+    // Текущий год в футере
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Небольшая «подсветка» курсора на карточке
+    const card = document.querySelector('.card');
+    card.addEventListener('pointermove', (e)=>{
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left, y = e.clientY - rect.top;
+      card.style.setProperty('--mx', x+'px');
+      card.style.setProperty('--my', y+'px');
+    });
+
+    // Добавим динамический блик
+    const style = document.createElement('style');
+    style.textContent = `
+      .card::after{
+        content:"";
+        position:absolute; inset:-1px;
+        background: radial-gradient(220px 160px at var(--mx,50%) var(--my,50%),
+                    rgba(255,255,255,.12), transparent 60%);
+        pointer-events:none; border-radius:inherit;
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
