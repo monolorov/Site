@@ -147,6 +147,7 @@ body {
 .controls {
     display: inline-flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .modeBtn {
@@ -259,8 +260,10 @@ body {
         <div class="panelHead">
             <div class="panelTitle">Player activity</div>
             <div class="controls">
-                <button class="modeBtn active" id="btn24" type="button">24H</button>
+                <button class="modeBtn active" id="btn1h" type="button">1H</button>
+                <button class="modeBtn" id="btn24" type="button">24H</button>
                 <button class="modeBtn" id="btn7" type="button">7D</button>
+                <button class="modeBtn" id="btn30" type="button">30D</button>
             </div>
         </div>
 
@@ -275,18 +278,20 @@ body {
 
 <script>
 const apiUrl = "/api/game"
-const storageKey = "dmArenaAnalyticsHistoryV1"
+const storageKey = "dmArenaAnalyticsHistoryV2"
 const onlineEl = document.getElementById("online")
 const visitsEl = document.getElementById("visits")
 const favoritesEl = document.getElementById("favorites")
 const statusText = document.getElementById("statusText")
 const onlineMeta = document.getElementById("onlineMeta")
+const btn1h = document.getElementById("btn1h")
 const btn24 = document.getElementById("btn24")
 const btn7 = document.getElementById("btn7")
+const btn30 = document.getElementById("btn30")
 const emptyState = document.getElementById("emptyState")
 const errorBox = document.getElementById("errorBox")
 
-let mode = "24h"
+let mode = "1h"
 let timer = null
 
 const numberFmt = new Intl.NumberFormat("en-US")
@@ -294,10 +299,14 @@ const timeFmt = new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit"
 })
-const dayFmt = new Intl.DateTimeFormat("en-US", {
+const dayHourFmt = new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
     hour: "2-digit"
+})
+const dayFmt = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric"
 })
 
 function formatNumber(n) {
@@ -330,7 +339,7 @@ function pushPoint(value) {
         v: value
     })
 
-    const maxAge = 7 * 24 * 60 * 60 * 1000
+    const maxAge = 30 * 24 * 60 * 60 * 1000
     list = list.filter(x => now - x.t <= maxAge)
 
     const deduped = []
@@ -345,13 +354,42 @@ function pushPoint(value) {
     setHistory(deduped)
 }
 
+function getModeRange() {
+    if (mode === "1h") return 60 * 60 * 1000
+    if (mode === "24h") return 24 * 60 * 60 * 1000
+    if (mode === "7d") return 7 * 24 * 60 * 60 * 1000
+    return 30 * 24 * 60 * 60 * 1000
+}
+
 function getFilteredHistory() {
     const now = Date.now()
-    const range = mode === "24h"
-        ? 24 * 60 * 60 * 1000
-        : 7 * 24 * 60 * 60 * 1000
-
+    const range = getModeRange()
     return getHistory().filter(x => now - x.t <= range)
+}
+
+function getLabelForPoint(point) {
+    if (!point) return ""
+
+    if (mode === "1h") {
+        return timeFmt.format(point.t)
+    }
+
+    if (mode === "24h") {
+        return timeFmt.format(point.t)
+    }
+
+    if (mode === "7d") {
+        return dayHourFmt.format(point.t)
+    }
+
+    return dayFmt.format(point.t)
+}
+
+function setActiveButton() {
+    btn1h.classList.toggle("active", mode === "1h")
+    btn24.classList.toggle("active", mode === "24h")
+    btn7.classList.toggle("active", mode === "7d")
+    btn30.classList.toggle("active", mode === "30d")
 }
 
 const ctx = document.getElementById("chart")
@@ -405,8 +443,7 @@ const chart = new Chart(ctx, {
                     title(items) {
                         const item = items[0]
                         const point = getFilteredHistory()[item.dataIndex]
-                        if (!point) return ""
-                        return mode === "24h" ? timeFmt.format(point.t) : dayFmt.format(point.t)
+                        return getLabelForPoint(point)
                     },
                     label(item) {
                         return "Online: " + formatNumber(item.parsed.y)
@@ -425,10 +462,7 @@ const chart = new Chart(ctx, {
                     color: "#7f7f7f",
                     callback(value, index) {
                         const point = getFilteredHistory()[index]
-                        if (!point) return ""
-                        return mode === "24h"
-                            ? timeFmt.format(point.t)
-                            : dayFmt.format(point.t)
+                        return getLabelForPoint(point)
                     }
                 }
             },
@@ -452,7 +486,7 @@ const chart = new Chart(ctx, {
 function renderChart() {
     const list = getFilteredHistory()
 
-    chart.data.labels = list.map(() => "")
+    chart.data.labels = list.map(point => getLabelForPoint(point))
     chart.data.datasets[0].data = list.map(x => x.v)
     chart.update()
 
@@ -507,20 +541,31 @@ async function fetchData() {
     }
 }
 
+btn1h.onclick = () => {
+    mode = "1h"
+    setActiveButton()
+    renderChart()
+}
+
 btn24.onclick = () => {
     mode = "24h"
-    btn24.classList.add("active")
-    btn7.classList.remove("active")
+    setActiveButton()
     renderChart()
 }
 
 btn7.onclick = () => {
     mode = "7d"
-    btn7.classList.add("active")
-    btn24.classList.remove("active")
+    setActiveButton()
     renderChart()
 }
 
+btn30.onclick = () => {
+    mode = "30d"
+    setActiveButton()
+    renderChart()
+}
+
+setActiveButton()
 renderChart()
 fetchData()
 timer = setInterval(fetchData, 10000)
