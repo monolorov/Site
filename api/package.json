@@ -1,7 +1,0 @@
-{
-  "name": "dm-arena-dashboard",
-  "private": true,
-  "dependencies": {
-    "@upstash/redis": "^1.35.3"
-  }
-}
