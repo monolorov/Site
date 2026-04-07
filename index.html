@@ -5,201 +5,525 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DM ARENA Analytics</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
-body {
+:root {
+    --bg: #0b0b0b;
+    --panel: #111111;
+    --panel2: #141414;
+    --border: #1c1c1c;
+    --text: #ffffff;
+    --muted: #8c8c8c;
+    --accent: #7fb6ff;
+    --accentSoft: rgba(127, 182, 255, 0.16);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
     margin: 0;
-    background: #0b0b0b;
-    color: white;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 40px 20px;
+body {
+    min-height: 100vh;
 }
 
-h1 {
-    font-size: 28px;
-    margin-bottom: 30px;
+.wrap {
+    width: 100%;
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 28px 18px 40px;
 }
 
-.cards {
+.topbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0;
+}
+
+.sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.status {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-bottom: 30px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
 }
 
 .card {
-    background: #121212;
-    padding: 20px;
-    border-radius: 10px;
-    transition: 0.2s;
-    border: 1px solid #1a1a1a;
+    background: linear-gradient(180deg, var(--panel), var(--panel2));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    min-height: 118px;
+    transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: rise .45s ease forwards;
+}
+
+.card:nth-child(2) {
+    animation-delay: .06s;
+}
+
+.card:nth-child(3) {
+    animation-delay: .12s;
 }
 
 .card:hover {
-    border-color: #2a8cff;
     transform: translateY(-2px);
+    border-color: rgba(127, 182, 255, 0.35);
+    background: linear-gradient(180deg, #131313, #171717);
 }
 
-.label {
-    color: #777;
+.cardLabel {
+    color: var(--muted);
     font-size: 14px;
+    margin-bottom: 10px;
 }
 
-.value {
-    font-size: 26px;
-    margin-top: 8px;
+.cardValue {
+    font-size: 34px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.04em;
 }
 
-.chartWrap {
-    background: #121212;
-    padding: 20px;
-    border-radius: 10px;
-    border: 1px solid #1a1a1a;
+.cardMeta {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.panel {
+    background: linear-gradient(180deg, var(--panel), var(--panel2));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: rise .45s ease .18s forwards;
+    animation-fill-mode: forwards;
+}
+
+.panelHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.panelTitle {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
 }
 
 .controls {
-    margin-bottom: 15px;
+    display: inline-flex;
+    gap: 8px;
 }
 
-button {
+.modeBtn {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
     background: transparent;
-    border: 1px solid #1a1a1a;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 6px;
-    margin-right: 6px;
+    color: var(--text);
     cursor: pointer;
+    transition: border-color .2s ease, background .2s ease, transform .2s ease;
 }
 
-button.active {
-    border-color: #2a8cff;
+.modeBtn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(127, 182, 255, 0.35);
 }
 
-canvas {
-    max-height: 300px;
+.modeBtn.active {
+    border-color: var(--accent);
+    background: var(--accentSoft);
+}
+
+.chartBox {
+    position: relative;
+    height: 420px;
+}
+
+.emptyState {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.errorBox {
+    display: none;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.03);
+    color: #cfcfcf;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+@keyframes rise {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .panelHead {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .chartBox {
+        height: 320px;
+    }
+
+    .cardValue {
+        font-size: 30px;
+    }
 }
 </style>
 </head>
-
 <body>
-<div class="container">
-    <h1>DM ARENA</h1>
+<div class="wrap">
+    <div class="topbar">
+        <div>
+            <h1 class="title">DM ARENA</h1>
+            <div class="sub">Roblox analytics dashboard</div>
+        </div>
+        <div class="status" id="statusText">Waiting for first update...</div>
+    </div>
 
-    <div class="cards">
+    <div class="grid">
         <div class="card">
-            <div class="label">Online players</div>
-            <div class="value" id="online">—</div>
+            <div class="cardLabel">Online players</div>
+            <div class="cardValue" id="online">—</div>
+            <div class="cardMeta" id="onlineMeta">Live snapshot</div>
         </div>
+
         <div class="card">
-            <div class="label">Visits</div>
-            <div class="value" id="visits">—</div>
+            <div class="cardLabel">Visits</div>
+            <div class="cardValue" id="visits">—</div>
+            <div class="cardMeta">Total experience visits</div>
         </div>
+
         <div class="card">
-            <div class="label">Favorites</div>
-            <div class="value" id="favorites">—</div>
+            <div class="cardLabel">Favorites</div>
+            <div class="cardValue" id="favorites">—</div>
+            <div class="cardMeta">Total favorites</div>
         </div>
     </div>
 
-    <div class="chartWrap">
-        <div class="controls">
-            <button id="btn24" class="active">24H</button>
-            <button id="btn7">7D</button>
+    <div class="panel">
+        <div class="panelHead">
+            <div class="panelTitle">Player activity</div>
+            <div class="controls">
+                <button class="modeBtn active" id="btn24" type="button">24H</button>
+                <button class="modeBtn" id="btn7" type="button">7D</button>
+            </div>
         </div>
-        <canvas id="chart"></canvas>
+
+        <div class="chartBox">
+            <canvas id="chart"></canvas>
+            <div class="emptyState" id="emptyState">History will appear after a few successful updates.</div>
+        </div>
+
+        <div class="errorBox" id="errorBox"></div>
     </div>
 </div>
 
 <script>
-const universeId = "8960617980"
-
-const format = n => n?.toLocaleString()
-
+const apiUrl = "/api/game"
+const storageKey = "dmArenaAnalyticsHistoryV1"
 const onlineEl = document.getElementById("online")
 const visitsEl = document.getElementById("visits")
-const favEl = document.getElementById("favorites")
+const favoritesEl = document.getElementById("favorites")
+const statusText = document.getElementById("statusText")
+const onlineMeta = document.getElementById("onlineMeta")
+const btn24 = document.getElementById("btn24")
+const btn7 = document.getElementById("btn7")
+const emptyState = document.getElementById("emptyState")
+const errorBox = document.getElementById("errorBox")
 
 let mode = "24h"
+let timer = null
+
+const numberFmt = new Intl.NumberFormat("en-US")
+const timeFmt = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit"
+})
+const dayFmt = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit"
+})
+
+function formatNumber(n) {
+    if (typeof n !== "number" || Number.isNaN(n)) return "—"
+    return numberFmt.format(n)
+}
+
+function getHistory() {
+    try {
+        const raw = localStorage.getItem(storageKey)
+        if (!raw) return []
+        const parsed = JSON.parse(raw)
+        if (!Array.isArray(parsed)) return []
+        return parsed.filter(x => x && typeof x.t === "number" && typeof x.v === "number")
+    } catch {
+        return []
+    }
+}
+
+function setHistory(list) {
+    localStorage.setItem(storageKey, JSON.stringify(list))
+}
+
+function pushPoint(value) {
+    const now = Date.now()
+    let list = getHistory()
+
+    list.push({
+        t: now,
+        v: value
+    })
+
+    const maxAge = 7 * 24 * 60 * 60 * 1000
+    list = list.filter(x => now - x.t <= maxAge)
+
+    const deduped = []
+    for (let i = 0; i < list.length; i++) {
+        const prev = deduped[deduped.length - 1]
+        const cur = list[i]
+        if (!prev || prev.t !== cur.t || prev.v !== cur.v) {
+            deduped.push(cur)
+        }
+    }
+
+    setHistory(deduped)
+}
+
+function getFilteredHistory() {
+    const now = Date.now()
+    const range = mode === "24h"
+        ? 24 * 60 * 60 * 1000
+        : 7 * 24 * 60 * 60 * 1000
+
+    return getHistory().filter(x => now - x.t <= range)
+}
 
 const ctx = document.getElementById("chart")
+const gradient = ctx.getContext("2d").createLinearGradient(0, 0, 0, 420)
+gradient.addColorStop(0, "rgba(127, 182, 255, 0.28)")
+gradient.addColorStop(1, "rgba(127, 182, 255, 0.00)")
 
-let chart = new Chart(ctx, {
+const chart = new Chart(ctx, {
     type: "line",
     data: {
         labels: [],
         datasets: [{
+            label: "Online",
             data: [],
-            tension: 0.3
+            borderColor: "#7fb6ff",
+            backgroundColor: gradient,
+            fill: true,
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: "#ffffff",
+            pointHoverBorderColor: "#7fb6ff",
+            pointHoverBorderWidth: 2,
+            tension: 0.35
         }]
     },
     options: {
-        plugins: { legend: { display: false }},
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 450,
+            easing: "easeOutCubic"
+        },
+        interaction: {
+            intersect: false,
+            mode: "index"
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: "#101010",
+                borderColor: "rgba(255,255,255,0.08)",
+                borderWidth: 1,
+                displayColors: false,
+                padding: 10,
+                titleColor: "#ffffff",
+                bodyColor: "#d8d8d8",
+                callbacks: {
+                    title(items) {
+                        const item = items[0]
+                        const point = getFilteredHistory()[item.dataIndex]
+                        if (!point) return ""
+                        return mode === "24h" ? timeFmt.format(point.t) : dayFmt.format(point.t)
+                    },
+                    label(item) {
+                        return "Online: " + formatNumber(item.parsed.y)
+                    }
+                }
+            }
+        },
         scales: {
-            x: { display: false },
-            y: { display: false }
+            x: {
+                grid: {
+                    color: "rgba(255,255,255,0.04)",
+                    drawBorder: false
+                },
+                ticks: {
+                    maxTicksLimit: 8,
+                    color: "#7f7f7f",
+                    callback(value, index) {
+                        const point = getFilteredHistory()[index]
+                        if (!point) return ""
+                        return mode === "24h"
+                            ? timeFmt.format(point.t)
+                            : dayFmt.format(point.t)
+                    }
+                }
+            },
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: "rgba(255,255,255,0.04)",
+                    drawBorder: false
+                },
+                ticks: {
+                    color: "#7f7f7f",
+                    callback(value) {
+                        return formatNumber(value)
+                    }
+                }
+            }
         }
     }
 })
 
-function savePoint(val) {
-    let data = JSON.parse(localStorage.getItem("history") || "[]")
-    data.push({ t: Date.now(), v: val })
+function renderChart() {
+    const list = getFilteredHistory()
 
-    data = data.filter(p => Date.now() - p.t < 7 * 86400000)
+    chart.data.labels = list.map(() => "")
+    chart.data.datasets[0].data = list.map(x => x.v)
+    chart.update()
 
-    localStorage.setItem("history", JSON.stringify(data))
+    emptyState.style.display = list.length ? "none" : "flex"
 }
 
-function loadData() {
-    let data = JSON.parse(localStorage.getItem("history") || "[]")
+function showError(text) {
+    errorBox.style.display = "block"
+    errorBox.textContent = text
+}
 
-    let range = mode === "24h" ? 86400000 : 7 * 86400000
-    data = data.filter(p => Date.now() - p.t < range)
-
-    chart.data.labels = data.map(p => "")
-    chart.data.datasets[0].data = data.map(p => p.v)
-    chart.update()
+function hideError() {
+    errorBox.style.display = "none"
+    errorBox.textContent = ""
 }
 
 async function fetchData() {
     try {
-        const res = await fetch(`https://corsproxy.io/?https://games.roblox.com/v1/games?universeIds=${universeId}`)
-        const json = await res.json()
+        const res = await fetch(apiUrl, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            },
+            cache: "no-store"
+        })
 
-        const game = json.data[0]
+        if (!res.ok) {
+            throw new Error("HTTP " + res.status)
+        }
 
-        onlineEl.textContent = format(game.playing)
-        visitsEl.textContent = format(game.visits)
-        favEl.textContent = format(game.favoritedCount)
+        const data = await res.json()
 
-        savePoint(game.playing)
-        loadData()
-    } catch (e) {
-        console.error(e)
-        onlineEl.textContent = "ERR"
+        if (!data || typeof data.playing !== "number") {
+            throw new Error("Bad response")
+        }
+
+        onlineEl.textContent = formatNumber(data.playing)
+        visitsEl.textContent = formatNumber(data.visits)
+        favoritesEl.textContent = formatNumber(data.favoritedCount)
+
+        pushPoint(data.playing)
+        renderChart()
+        hideError()
+
+        const now = new Date()
+        statusText.textContent = "Last update: " + now.toLocaleTimeString()
+        onlineMeta.textContent = "Universe ID: " + data.universeId
+    } catch (err) {
+        console.error(err)
+        statusText.textContent = "Update failed"
+        showError("Data could not be loaded from /api/game. If this is on Vercel, make sure api/game.js exists and deployed successfully.")
     }
 }
 
-setInterval(fetchData, 10000)
-fetchData()
-
-document.getElementById("btn24").onclick = () => {
+btn24.onclick = () => {
     mode = "24h"
     btn24.classList.add("active")
     btn7.classList.remove("active")
-    loadData()
+    renderChart()
 }
 
-document.getElementById("btn7").onclick = () => {
+btn7.onclick = () => {
     mode = "7d"
     btn7.classList.add("active")
     btn24.classList.remove("active")
-    loadData()
+    renderChart()
 }
+
+renderChart()
+fetchData()
+timer = setInterval(fetchData, 10000)
 </script>
 </body>
 </html>
