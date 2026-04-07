@@ -167,7 +167,7 @@ function loadData() {
 
 async function fetchData() {
     try {
-        const res = await fetch(`https://games.roblox.com/v1/games?universeIds=${universeId}`)
+        const res = await fetch(`https://games.roproxy.com/v1/games?universeIds=${universeId}`)
         const json = await res.json()
         const game = json.data[0]
 
