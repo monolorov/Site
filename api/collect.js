@@ -1,6 +1,10 @@
 import { Redis } from "@upstash/redis"
 
-const redis = Redis.fromEnv()
+const redis = new Redis({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN
+})
+
 const universeId = "8960617980"
 const historyKey = `game:${universeId}:history`
 
@@ -36,24 +40,26 @@ export default async function handler(req, res) {
 
         await redis.rpush(historyKey, JSON.stringify(point))
 
-        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
         const raw = await redis.lrange(historyKey, 0, -1)
+        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
+
         const filtered = raw
-            .map(x => {
+            .map(item => {
                 try {
-                    return JSON.parse(x)
+                    return JSON.parse(item)
                 } catch {
                     return null
                 }
             })
-            .filter(x => x && typeof x.t === "number" && x.t >= cutoff)
+            .filter(item => item && typeof item.t === "number" && typeof item.v === "number" && item.t >= cutoff)
 
         await redis.del(historyKey)
 
-        if (filtered.length > 0) {
-            await redis.rpush(historyKey, ...filtered.map(x => JSON.stringify(x)))
+        if (filtered.length) {
+            await redis.rpush(historyKey, ...filtered.map(item => JSON.stringify(item)))
         }
 
+        res.setHeader("Cache-Control", "no-store, max-age=0")
         return res.status(200).json({
             ok: true,
             saved: point
