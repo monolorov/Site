@@ -269,7 +269,7 @@ body {
 
         <div class="chartBox">
             <canvas id="chart"></canvas>
-            <div class="emptyState" id="emptyState">History will appear after a few successful updates.</div>
+            <div class="emptyState" id="emptyState">History is empty yet. Wait for the collector to save a few points.</div>
         </div>
 
         <div class="errorBox" id="errorBox"></div>
@@ -277,8 +277,9 @@ body {
 </div>
 
 <script>
-const apiUrl = "/api/game"
-const storageKey = "dmArenaAnalyticsHistoryV2"
+const gameApiUrl = "/api/game"
+const historyApiBase = "/api/history"
+
 const onlineEl = document.getElementById("online")
 const visitsEl = document.getElementById("visits")
 const favoritesEl = document.getElementById("favorites")
@@ -292,7 +293,9 @@ const emptyState = document.getElementById("emptyState")
 const errorBox = document.getElementById("errorBox")
 
 let mode = "1h"
-let timer = null
+let currentHistory = []
+let gameTimer = null
+let historyTimer = null
 
 const numberFmt = new Intl.NumberFormat("en-US")
 const timeFmt = new Intl.DateTimeFormat("en-US", {
@@ -314,74 +317,12 @@ function formatNumber(n) {
     return numberFmt.format(n)
 }
 
-function getHistory() {
-    try {
-        const raw = localStorage.getItem(storageKey)
-        if (!raw) return []
-        const parsed = JSON.parse(raw)
-        if (!Array.isArray(parsed)) return []
-        return parsed.filter(x => x && typeof x.t === "number" && typeof x.v === "number")
-    } catch {
-        return []
-    }
-}
-
-function setHistory(list) {
-    localStorage.setItem(storageKey, JSON.stringify(list))
-}
-
-function pushPoint(value) {
-    const now = Date.now()
-    let list = getHistory()
-
-    list.push({
-        t: now,
-        v: value
-    })
-
-    const maxAge = 30 * 24 * 60 * 60 * 1000
-    list = list.filter(x => now - x.t <= maxAge)
-
-    const deduped = []
-    for (let i = 0; i < list.length; i++) {
-        const prev = deduped[deduped.length - 1]
-        const cur = list[i]
-        if (!prev || prev.t !== cur.t || prev.v !== cur.v) {
-            deduped.push(cur)
-        }
-    }
-
-    setHistory(deduped)
-}
-
-function getModeRange() {
-    if (mode === "1h") return 60 * 60 * 1000
-    if (mode === "24h") return 24 * 60 * 60 * 1000
-    if (mode === "7d") return 7 * 24 * 60 * 60 * 1000
-    return 30 * 24 * 60 * 60 * 1000
-}
-
-function getFilteredHistory() {
-    const now = Date.now()
-    const range = getModeRange()
-    return getHistory().filter(x => now - x.t <= range)
-}
-
 function getLabelForPoint(point) {
     if (!point) return ""
 
-    if (mode === "1h") {
-        return timeFmt.format(point.t)
-    }
-
-    if (mode === "24h") {
-        return timeFmt.format(point.t)
-    }
-
-    if (mode === "7d") {
-        return dayHourFmt.format(point.t)
-    }
-
+    if (mode === "1h") return timeFmt.format(point.t)
+    if (mode === "24h") return timeFmt.format(point.t)
+    if (mode === "7d") return dayHourFmt.format(point.t)
     return dayFmt.format(point.t)
 }
 
@@ -390,6 +331,16 @@ function setActiveButton() {
     btn24.classList.toggle("active", mode === "24h")
     btn7.classList.toggle("active", mode === "7d")
     btn30.classList.toggle("active", mode === "30d")
+}
+
+function showError(text) {
+    errorBox.style.display = "block"
+    errorBox.textContent = text
+}
+
+function hideError() {
+    errorBox.style.display = "none"
+    errorBox.textContent = ""
 }
 
 const ctx = document.getElementById("chart")
@@ -442,7 +393,7 @@ const chart = new Chart(ctx, {
                 callbacks: {
                     title(items) {
                         const item = items[0]
-                        const point = getFilteredHistory()[item.dataIndex]
+                        const point = currentHistory[item.dataIndex]
                         return getLabelForPoint(point)
                     },
                     label(item) {
@@ -461,7 +412,7 @@ const chart = new Chart(ctx, {
                     maxTicksLimit: 8,
                     color: "#7f7f7f",
                     callback(value, index) {
-                        const point = getFilteredHistory()[index]
+                        const point = currentHistory[index]
                         return getLabelForPoint(point)
                     }
                 }
@@ -484,91 +435,103 @@ const chart = new Chart(ctx, {
 })
 
 function renderChart() {
-    const list = getFilteredHistory()
-
-    chart.data.labels = list.map(point => getLabelForPoint(point))
-    chart.data.datasets[0].data = list.map(x => x.v)
+    chart.data.labels = currentHistory.map(point => getLabelForPoint(point))
+    chart.data.datasets[0].data = currentHistory.map(point => point.v)
     chart.update()
-
-    emptyState.style.display = list.length ? "none" : "flex"
+    emptyState.style.display = currentHistory.length ? "none" : "flex"
 }
 
-function showError(text) {
-    errorBox.style.display = "block"
-    errorBox.textContent = text
+async function loadGame() {
+    const res = await fetch(gameApiUrl, {
+        method: "GET",
+        headers: {
+            Accept: "application/json"
+        },
+        cache: "no-store"
+    })
+
+    if (!res.ok) {
+        throw new Error("Game HTTP " + res.status)
+    }
+
+    const data = await res.json()
+
+    if (!data || typeof data.playing !== "number") {
+        throw new Error("Bad game response")
+    }
+
+    onlineEl.textContent = formatNumber(data.playing)
+    visitsEl.textContent = formatNumber(data.visits)
+    favoritesEl.textContent = formatNumber(data.favoritedCount)
+
+    const now = new Date()
+    statusText.textContent = "Last update: " + now.toLocaleTimeString()
+    onlineMeta.textContent = "Universe ID: " + data.universeId
 }
 
-function hideError() {
-    errorBox.style.display = "none"
-    errorBox.textContent = ""
+async function loadHistory() {
+    const res = await fetch(`${historyApiBase}?range=${encodeURIComponent(mode)}`, {
+        method: "GET",
+        headers: {
+            Accept: "application/json"
+        },
+        cache: "no-store"
+    })
+
+    if (!res.ok) {
+        throw new Error("History HTTP " + res.status)
+    }
+
+    const json = await res.json()
+    const list = Array.isArray(json.data) ? json.data : []
+
+    currentHistory = list.filter(point => point && typeof point.t === "number" && typeof point.v === "number")
+    renderChart()
 }
 
-async function fetchData() {
+async function refreshAll() {
     try {
-        const res = await fetch(apiUrl, {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            },
-            cache: "no-store"
-        })
-
-        if (!res.ok) {
-            throw new Error("HTTP " + res.status)
-        }
-
-        const data = await res.json()
-
-        if (!data || typeof data.playing !== "number") {
-            throw new Error("Bad response")
-        }
-
-        onlineEl.textContent = formatNumber(data.playing)
-        visitsEl.textContent = formatNumber(data.visits)
-        favoritesEl.textContent = formatNumber(data.favoritedCount)
-
-        pushPoint(data.playing)
-        renderChart()
+        await Promise.all([
+            loadGame(),
+            loadHistory()
+        ])
         hideError()
-
-        const now = new Date()
-        statusText.textContent = "Last update: " + now.toLocaleTimeString()
-        onlineMeta.textContent = "Universe ID: " + data.universeId
     } catch (err) {
         console.error(err)
         statusText.textContent = "Update failed"
-        showError("Data could not be loaded from /api/game. If this is on Vercel, make sure api/game.js exists and deployed successfully.")
+        showError("Failed to load /api/game or /api/history. Check Vercel deploy, Upstash env vars and that /api/collect is being called by cron-job.org.")
     }
 }
 
-btn1h.onclick = () => {
+btn1h.onclick = async () => {
     mode = "1h"
     setActiveButton()
-    renderChart()
+    await loadHistory().catch(console.error)
 }
 
-btn24.onclick = () => {
+btn24.onclick = async () => {
     mode = "24h"
     setActiveButton()
-    renderChart()
+    await loadHistory().catch(console.error)
 }
 
-btn7.onclick = () => {
+btn7.onclick = async () => {
     mode = "7d"
     setActiveButton()
-    renderChart()
+    await loadHistory().catch(console.error)
 }
 
-btn30.onclick = () => {
+btn30.onclick = async () => {
     mode = "30d"
     setActiveButton()
-    renderChart()
+    await loadHistory().catch(console.error)
 }
 
 setActiveButton()
 renderChart()
-fetchData()
-timer = setInterval(fetchData, 10000)
+refreshAll()
+gameTimer = setInterval(loadGame, 10000)
+historyTimer = setInterval(loadHistory, 30000)
 </script>
 </body>
 </html>
