@@ -1,6 +1,10 @@
 import { Redis } from "@upstash/redis"
 
-const redis = Redis.fromEnv()
+const redis = new Redis({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN
+})
+
 const universeId = "8960617980"
 const historyKey = `game:${universeId}:history`
 
@@ -15,18 +19,17 @@ export default async function handler(req, res) {
         if (range === "7d") ms = 7 * 24 * 60 * 60 * 1000
         if (range === "30d") ms = 30 * 24 * 60 * 60 * 1000
 
-        const cutoff = now - ms
         const raw = await redis.lrange(historyKey, 0, -1)
 
         const data = raw
-            .map(x => {
+            .map(item => {
                 try {
-                    return JSON.parse(x)
+                    return JSON.parse(item)
                 } catch {
                     return null
                 }
             })
-            .filter(x => x && typeof x.t === "number" && typeof x.v === "number" && x.t >= cutoff)
+            .filter(item => item && typeof item.t === "number" && typeof item.v === "number" && now - item.t <= ms)
 
         res.setHeader("Cache-Control", "no-store, max-age=0")
         return res.status(200).json({
