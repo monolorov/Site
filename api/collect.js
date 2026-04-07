@@ -38,31 +38,26 @@ export default async function handler(req, res) {
             v: Number(game.playing) || 0
         }
 
-        await redis.rpush(historyKey, JSON.stringify(point))
+        let history = await redis.get(historyKey)
 
-        const raw = await redis.lrange(historyKey, 0, -1)
-        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
-
-        const filtered = raw
-            .map(item => {
-                try {
-                    return JSON.parse(item)
-                } catch {
-                    return null
-                }
-            })
-            .filter(item => item && typeof item.t === "number" && typeof item.v === "number" && item.t >= cutoff)
-
-        await redis.del(historyKey)
-
-        if (filtered.length) {
-            await redis.rpush(historyKey, ...filtered.map(item => JSON.stringify(item)))
+        if (!Array.isArray(history)) {
+            history = []
         }
+
+        history.push(point)
+
+        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
+        history = history.filter(item => {
+            return item && typeof item.t === "number" && typeof item.v === "number" && item.t >= cutoff
+        })
+
+        await redis.set(historyKey, history)
 
         res.setHeader("Cache-Control", "no-store, max-age=0")
         return res.status(200).json({
             ok: true,
-            saved: point
+            saved: point,
+            total: history.length
         })
     } catch (err) {
         return res.status(500).json({
