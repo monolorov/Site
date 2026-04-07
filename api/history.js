@@ -19,17 +19,15 @@ export default async function handler(req, res) {
         if (range === "7d") ms = 7 * 24 * 60 * 60 * 1000
         if (range === "30d") ms = 30 * 24 * 60 * 60 * 1000
 
-        const raw = await redis.lrange(historyKey, 0, -1)
+        let history = await redis.get(historyKey)
 
-        const data = raw
-            .map(item => {
-                try {
-                    return JSON.parse(item)
-                } catch {
-                    return null
-                }
-            })
-            .filter(item => item && typeof item.t === "number" && typeof item.v === "number" && now - item.t <= ms)
+        if (!Array.isArray(history)) {
+            history = []
+        }
+
+        const data = history.filter(item => {
+            return item && typeof item.t === "number" && typeof item.v === "number" && now - item.t <= ms
+        })
 
         res.setHeader("Cache-Control", "no-store, max-age=0")
         return res.status(200).json({
