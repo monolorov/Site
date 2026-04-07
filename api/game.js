@@ -5,12 +5,12 @@ export default async function handler(req, res) {
         const [gameRes, favRes] = await Promise.all([
             fetch(`https://games.roblox.com/v1/games?universeIds=${universeId}`, {
                 headers: {
-                    "Accept": "application/json"
+                    Accept: "application/json"
                 }
             }),
             fetch(`https://apis.roblox.com/interactions/v1/games/${universeId}/favorites/count`, {
                 headers: {
-                    "Accept": "application/json"
+                    Accept: "application/json"
                 }
             })
         ])
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
         }
 
         const gameJson = await gameRes.json()
-        const game = gameJson && gameJson.data && gameJson.data[0]
+        const game = gameJson?.data?.[0]
 
         if (!game) {
             return res.status(404).json({
