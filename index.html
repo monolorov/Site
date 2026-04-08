@@ -302,6 +302,11 @@ const timeFmt = new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit"
 })
+const timeFmtWithSeconds = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+})
 const dayHourFmt = new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
@@ -317,12 +322,21 @@ function formatNumber(n) {
     return numberFmt.format(n)
 }
 
-function getLabelForPoint(point) {
+function formatPointTime(point, forTooltip) {
     if (!point) return ""
 
-    if (mode === "1h") return timeFmt.format(point.t)
-    if (mode === "24h") return timeFmt.format(point.t)
-    if (mode === "7d") return dayHourFmt.format(point.t)
+    if (mode === "1h") {
+        return forTooltip ? timeFmtWithSeconds.format(point.t) : timeFmt.format(point.t)
+    }
+
+    if (mode === "24h") {
+        return timeFmt.format(point.t)
+    }
+
+    if (mode === "7d") {
+        return dayHourFmt.format(point.t)
+    }
+
     return dayFmt.format(point.t)
 }
 
@@ -341,6 +355,32 @@ function showError(text) {
 function hideError() {
     errorBox.style.display = "none"
     errorBox.textContent = ""
+}
+
+function normalizeHistory(list) {
+    const valid = list
+        .filter(point => point && typeof point.t === "number" && typeof point.v === "number")
+        .map(point => ({
+            t: point.t,
+            v: point.v
+        }))
+        .sort((a, b) => a.t - b.t)
+
+    if (mode !== "1h") {
+        return valid
+    }
+
+    const bySecond = new Map()
+
+    for (const point of valid) {
+        const key = Math.floor(point.t / 1000) * 1000
+        bySecond.set(key, {
+            t: key,
+            v: point.v
+        })
+    }
+
+    return Array.from(bySecond.values()).sort((a, b) => a.t - b.t)
 }
 
 const ctx = document.getElementById("chart")
@@ -364,7 +404,7 @@ const chart = new Chart(ctx, {
             pointHoverBackgroundColor: "#ffffff",
             pointHoverBorderColor: "#7fb6ff",
             pointHoverBorderWidth: 2,
-            tension: 0.35
+            tension: 0
         }]
     },
     options: {
@@ -394,7 +434,7 @@ const chart = new Chart(ctx, {
                     title(items) {
                         const item = items[0]
                         const point = currentHistory[item.dataIndex]
-                        return getLabelForPoint(point)
+                        return formatPointTime(point, true)
                     },
                     label(item) {
                         return "Online: " + formatNumber(item.parsed.y)
@@ -413,17 +453,19 @@ const chart = new Chart(ctx, {
                     color: "#7f7f7f",
                     callback(value, index) {
                         const point = currentHistory[index]
-                        return getLabelForPoint(point)
+                        return formatPointTime(point, false)
                     }
                 }
             },
             y: {
                 beginAtZero: true,
+                grace: "5%",
                 grid: {
                     color: "rgba(255,255,255,0.04)",
                     drawBorder: false
                 },
                 ticks: {
+                    precision: 0,
                     color: "#7f7f7f",
                     callback(value) {
                         return formatNumber(value)
@@ -435,7 +477,7 @@ const chart = new Chart(ctx, {
 })
 
 function renderChart() {
-    chart.data.labels = currentHistory.map(point => getLabelForPoint(point))
+    chart.data.labels = currentHistory.map(point => point.t)
     chart.data.datasets[0].data = currentHistory.map(point => point.v)
     chart.update()
     emptyState.style.display = currentHistory.length ? "none" : "flex"
@@ -485,7 +527,7 @@ async function loadHistory() {
     const json = await res.json()
     const list = Array.isArray(json.data) ? json.data : []
 
-    currentHistory = list.filter(point => point && typeof point.t === "number" && typeof point.v === "number")
+    currentHistory = normalizeHistory(list)
     renderChart()
 }
 
