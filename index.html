@@ -7,14 +7,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
-    --bg: #0b0b0b;
-    --panel: #111111;
+    --bg: #0a0a0a;
+    --panel: #101010;
     --panel2: #141414;
-    --border: #1c1c1c;
+    --border: rgba(255,255,255,0.06);
     --text: #ffffff;
-    --muted: #8c8c8c;
+    --muted: #8a8a8a;
     --accent: #7fb6ff;
-    --accentSoft: rgba(127, 182, 255, 0.16);
+    --accentSoft: rgba(127, 182, 255, 0.14);
 }
 
 * {
@@ -26,7 +26,7 @@ html, body {
     padding: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: Inter, Arial, sans-serif;
 }
 
 body {
@@ -37,37 +37,37 @@ body {
     width: 100%;
     max-width: 1220px;
     margin: 0 auto;
-    padding: 28px 18px 40px;
+    padding: 26px 18px 42px;
 }
 
 .topbar {
     display: flex;
-    align-items: flex-end;
     justify-content: space-between;
+    align-items: flex-end;
     gap: 16px;
-    margin-bottom: 22px;
+    margin-bottom: 16px;
 }
 
 .title {
+    margin: 0;
     font-size: 24px;
     font-weight: 700;
     letter-spacing: -0.03em;
-    margin: 0;
 }
 
 .sub {
+    margin-top: 6px;
     color: var(--muted);
     font-size: 13px;
-    margin-top: 6px;
 }
 
 .status {
-    font-size: 12px;
     color: var(--muted);
+    font-size: 12px;
     white-space: nowrap;
 }
 
-.grid {
+.stats {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
@@ -77,27 +77,10 @@ body {
 .card {
     background: linear-gradient(180deg, var(--panel), var(--panel2));
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 18px 20px;
+    border-radius: 18px;
+    padding: 20px 22px;
     min-height: 118px;
-    transition: transform .2s ease, border-color .2s ease, background .2s ease;
-    opacity: 0;
-    transform: translateY(8px);
-    animation: rise .45s ease forwards;
-}
-
-.card:nth-child(2) {
-    animation-delay: .06s;
-}
-
-.card:nth-child(3) {
-    animation-delay: .12s;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(127, 182, 255, 0.35);
-    background: linear-gradient(180deg, #131313, #171717);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
 }
 
 .cardLabel {
@@ -108,26 +91,23 @@ body {
 
 .cardValue {
     font-size: 34px;
-    line-height: 1;
     font-weight: 700;
     letter-spacing: -0.04em;
+    line-height: 1;
 }
 
 .cardMeta {
     margin-top: 12px;
-    font-size: 12px;
     color: var(--muted);
+    font-size: 12px;
 }
 
 .panel {
     background: linear-gradient(180deg, var(--panel), var(--panel2));
     border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 18px;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: rise .45s ease .18s forwards;
-    animation-fill-mode: forwards;
+    border-radius: 20px;
+    padding: 18px 18px 14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
 }
 
 .panelHead {
@@ -140,40 +120,44 @@ body {
 
 .panelTitle {
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -0.02em;
 }
 
 .controls {
-    display: inline-flex;
+    display: flex;
+    align-items: center;
     gap: 8px;
     flex-wrap: wrap;
 }
 
 .modeBtn {
     height: 34px;
-    padding: 0 14px;
-    border-radius: 10px;
+    padding: 0 16px;
+    border-radius: 12px;
     border: 1px solid var(--border);
-    background: transparent;
+    background: rgba(255,255,255,0.01);
     color: var(--text);
     cursor: pointer;
-    transition: border-color .2s ease, background .2s ease, transform .2s ease;
+    font-size: 14px;
+    transition: .18s ease;
 }
 
 .modeBtn:hover {
-    transform: translateY(-1px);
     border-color: rgba(127, 182, 255, 0.35);
+    background: rgba(255,255,255,0.025);
 }
 
 .modeBtn.active {
     border-color: var(--accent);
     background: var(--accentSoft);
+    box-shadow: inset 0 0 0 1px rgba(127, 182, 255, 0.08);
 }
 
-.chartBox {
+.chartWrap {
     position: relative;
     height: 420px;
+    padding: 8px 8px 2px;
 }
 
 .emptyState {
@@ -192,22 +176,15 @@ body {
     margin-top: 14px;
     padding: 12px 14px;
     border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.06);
-    background: rgba(255,255,255,0.03);
-    color: #cfcfcf;
+    border: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.025);
+    color: #d1d1d1;
     font-size: 13px;
     line-height: 1.45;
 }
 
-@keyframes rise {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 @media (max-width: 900px) {
-    .grid {
+    .stats {
         grid-template-columns: 1fr;
     }
 
@@ -216,12 +193,9 @@ body {
         align-items: flex-start;
     }
 
-    .chartBox {
+    .chartWrap {
         height: 320px;
-    }
-
-    .cardValue {
-        font-size: 30px;
+        padding: 4px 0 0;
     }
 }
 </style>
@@ -236,7 +210,7 @@ body {
         <div class="status" id="statusText">Waiting for first update...</div>
     </div>
 
-    <div class="grid">
+    <div class="stats">
         <div class="card">
             <div class="cardLabel">Online players</div>
             <div class="cardValue" id="online">—</div>
@@ -261,15 +235,15 @@ body {
             <div class="panelTitle">Player activity</div>
             <div class="controls">
                 <button class="modeBtn active" id="btn1h" type="button">1H</button>
-                <button class="modeBtn" id="btn24" type="button">24H</button>
-                <button class="modeBtn" id="btn7" type="button">7D</button>
-                <button class="modeBtn" id="btn30" type="button">30D</button>
+                <button class="modeBtn" id="btn24h" type="button">24H</button>
+                <button class="modeBtn" id="btn7d" type="button">7D</button>
+                <button class="modeBtn" id="btn30d" type="button">30D</button>
             </div>
         </div>
 
-        <div class="chartBox">
+        <div class="chartWrap">
             <canvas id="chart"></canvas>
-            <div class="emptyState" id="emptyState">History is empty yet. Wait for the collector to save a few points.</div>
+            <div class="emptyState" id="emptyState">History is empty yet</div>
         </div>
 
         <div class="errorBox" id="errorBox"></div>
@@ -283,26 +257,25 @@ const historyApiBase = "/api/history"
 const onlineEl = document.getElementById("online")
 const visitsEl = document.getElementById("visits")
 const favoritesEl = document.getElementById("favorites")
-const statusText = document.getElementById("statusText")
 const onlineMeta = document.getElementById("onlineMeta")
-const btn1h = document.getElementById("btn1h")
-const btn24 = document.getElementById("btn24")
-const btn7 = document.getElementById("btn7")
-const btn30 = document.getElementById("btn30")
-const emptyState = document.getElementById("emptyState")
+const statusText = document.getElementById("statusText")
 const errorBox = document.getElementById("errorBox")
+const emptyState = document.getElementById("emptyState")
+
+const btn1h = document.getElementById("btn1h")
+const btn24h = document.getElementById("btn24h")
+const btn7d = document.getElementById("btn7d")
+const btn30d = document.getElementById("btn30d")
 
 let mode = "1h"
 let currentHistory = []
-let gameTimer = null
-let historyTimer = null
 
-const numberFmt = new Intl.NumberFormat("en-US")
+const numFmt = new Intl.NumberFormat("en-US")
 const timeFmt = new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit"
 })
-const timeFmtWithSeconds = new Intl.DateTimeFormat("en-US", {
+const timeFmtSeconds = new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit"
@@ -319,46 +292,49 @@ const dayFmt = new Intl.DateTimeFormat("en-US", {
 
 function formatNumber(n) {
     if (typeof n !== "number" || Number.isNaN(n)) return "—"
-    return numberFmt.format(n)
+    return numFmt.format(n)
 }
 
-function formatPointTime(point, forTooltip) {
-    if (!point) return ""
-
-    if (mode === "1h") {
-        return forTooltip ? timeFmtWithSeconds.format(point.t) : timeFmt.format(point.t)
-    }
-
-    if (mode === "24h") {
-        return timeFmt.format(point.t)
-    }
-
-    if (mode === "7d") {
-        return dayHourFmt.format(point.t)
-    }
-
-    return dayFmt.format(point.t)
-}
-
-function setActiveButton() {
+function setModeButtons() {
     btn1h.classList.toggle("active", mode === "1h")
-    btn24.classList.toggle("active", mode === "24h")
-    btn7.classList.toggle("active", mode === "7d")
-    btn30.classList.toggle("active", mode === "30d")
+    btn24h.classList.toggle("active", mode === "24h")
+    btn7d.classList.toggle("active", mode === "7d")
+    btn30d.classList.toggle("active", mode === "30d")
 }
 
-function showError(text) {
+function setError(text) {
+    if (!text) {
+        errorBox.style.display = "none"
+        errorBox.textContent = ""
+        return
+    }
+
     errorBox.style.display = "block"
     errorBox.textContent = text
 }
 
-function hideError() {
-    errorBox.style.display = "none"
-    errorBox.textContent = ""
+function getPointLabel(point, detailed) {
+    if (!point) return ""
+
+    const date = new Date(point.t)
+
+    if (mode === "1h") {
+        return detailed ? timeFmtSeconds.format(date) : timeFmt.format(date)
+    }
+
+    if (mode === "24h") {
+        return timeFmt.format(date)
+    }
+
+    if (mode === "7d") {
+        return dayHourFmt.format(date)
+    }
+
+    return dayFmt.format(date)
 }
 
 function normalizeHistory(list) {
-    const valid = list
+    const clean = list
         .filter(point => point && typeof point.t === "number" && typeof point.v === "number")
         .map(point => ({
             t: point.t,
@@ -367,26 +343,37 @@ function normalizeHistory(list) {
         .sort((a, b) => a.t - b.t)
 
     if (mode !== "1h") {
-        return valid
+        return clean
     }
 
-    const bySecond = new Map()
+    const grouped = new Map()
 
-    for (const point of valid) {
-        const key = Math.floor(point.t / 1000) * 1000
-        bySecond.set(key, {
-            t: key,
-            v: point.v
-        })
+    for (const point of clean) {
+        const bucket = Math.floor(point.t / 30000) * 30000
+        if (!grouped.has(bucket)) {
+            grouped.set(bucket, {
+                t: bucket,
+                values: [point.v]
+            })
+        } else {
+            grouped.get(bucket).values.push(point.v)
+        }
     }
 
-    return Array.from(bySecond.values()).sort((a, b) => a.t - b.t)
+    return Array.from(grouped.values()).map(item => {
+        const avg = item.values.reduce((sum, value) => sum + value, 0) / item.values.length
+        return {
+            t: item.t,
+            v: Math.round(avg * 100) / 100
+        }
+    }).sort((a, b) => a.t - b.t)
 }
 
-const ctx = document.getElementById("chart")
-const gradient = ctx.getContext("2d").createLinearGradient(0, 0, 0, 420)
+const canvas = document.getElementById("chart")
+const ctx = canvas.getContext("2d")
+const gradient = ctx.createLinearGradient(0, 0, 0, 420)
 gradient.addColorStop(0, "rgba(127, 182, 255, 0.28)")
-gradient.addColorStop(1, "rgba(127, 182, 255, 0.00)")
+gradient.addColorStop(1, "rgba(127, 182, 255, 0)")
 
 const chart = new Chart(ctx, {
     type: "line",
@@ -401,18 +388,28 @@ const chart = new Chart(ctx, {
             borderWidth: 2,
             pointRadius: 0,
             pointHoverRadius: 4,
+            pointHitRadius: 16,
             pointHoverBackgroundColor: "#ffffff",
             pointHoverBorderColor: "#7fb6ff",
             pointHoverBorderWidth: 2,
-            tension: 0
+            tension: 0.28,
+            cubicInterpolationMode: "monotone"
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
         animation: {
-            duration: 450,
+            duration: 350,
             easing: "easeOutCubic"
+        },
+        layout: {
+            padding: {
+                top: 8,
+                right: 10,
+                bottom: 2,
+                left: 2
+            }
         },
         interaction: {
             intersect: false,
@@ -429,12 +426,12 @@ const chart = new Chart(ctx, {
                 displayColors: false,
                 padding: 10,
                 titleColor: "#ffffff",
-                bodyColor: "#d8d8d8",
+                bodyColor: "#d5d5d5",
+                caretPadding: 10,
                 callbacks: {
                     title(items) {
-                        const item = items[0]
-                        const point = currentHistory[item.dataIndex]
-                        return formatPointTime(point, true)
+                        const point = currentHistory[items[0].dataIndex]
+                        return getPointLabel(point, true)
                     },
                     label(item) {
                         return "Online: " + formatNumber(item.parsed.y)
@@ -444,29 +441,40 @@ const chart = new Chart(ctx, {
         },
         scales: {
             x: {
+                offset: false,
                 grid: {
                     color: "rgba(255,255,255,0.04)",
-                    drawBorder: false
+                    drawBorder: false,
+                    tickLength: 0
+                },
+                border: {
+                    display: false
                 },
                 ticks: {
-                    maxTicksLimit: 8,
                     color: "#7f7f7f",
+                    maxTicksLimit: 6,
+                    maxRotation: 0,
+                    autoSkip: true,
+                    padding: 12,
                     callback(value, index) {
-                        const point = currentHistory[index]
-                        return formatPointTime(point, false)
+                        return getPointLabel(currentHistory[index], false)
                     }
                 }
             },
             y: {
                 beginAtZero: true,
-                grace: "5%",
+                grace: "8%",
                 grid: {
                     color: "rgba(255,255,255,0.04)",
                     drawBorder: false
                 },
+                border: {
+                    display: false
+                },
                 ticks: {
-                    precision: 0,
                     color: "#7f7f7f",
+                    precision: 0,
+                    padding: 10,
                     callback(value) {
                         return formatNumber(value)
                     }
@@ -485,7 +493,6 @@ function renderChart() {
 
 async function loadGame() {
     const res = await fetch(gameApiUrl, {
-        method: "GET",
         headers: {
             Accept: "application/json"
         },
@@ -498,22 +505,15 @@ async function loadGame() {
 
     const data = await res.json()
 
-    if (!data || typeof data.playing !== "number") {
-        throw new Error("Bad game response")
-    }
-
     onlineEl.textContent = formatNumber(data.playing)
     visitsEl.textContent = formatNumber(data.visits)
     favoritesEl.textContent = formatNumber(data.favoritedCount)
-
-    const now = new Date()
-    statusText.textContent = "Last update: " + now.toLocaleTimeString()
     onlineMeta.textContent = "Universe ID: " + data.universeId
+    statusText.textContent = "Last update: " + new Date().toLocaleTimeString()
 }
 
 async function loadHistory() {
     const res = await fetch(`${historyApiBase}?range=${encodeURIComponent(mode)}`, {
-        method: "GET",
         headers: {
             Accept: "application/json"
         },
@@ -525,9 +525,7 @@ async function loadHistory() {
     }
 
     const json = await res.json()
-    const list = Array.isArray(json.data) ? json.data : []
-
-    currentHistory = normalizeHistory(list)
+    currentHistory = normalizeHistory(Array.isArray(json.data) ? json.data : [])
     renderChart()
 }
 
@@ -537,43 +535,43 @@ async function refreshAll() {
             loadGame(),
             loadHistory()
         ])
-        hideError()
+        setError("")
     } catch (err) {
         console.error(err)
         statusText.textContent = "Update failed"
-        showError("Failed to load /api/game or /api/history. Check Vercel deploy, Upstash env vars and that /api/collect is being called by cron-job.org.")
+        setError("Failed to load analytics data. Check /api/game, /api/history and your collector.")
     }
 }
 
-btn1h.onclick = async () => {
+btn1h.onclick = async function() {
     mode = "1h"
-    setActiveButton()
+    setModeButtons()
     await loadHistory().catch(console.error)
 }
 
-btn24.onclick = async () => {
+btn24h.onclick = async function() {
     mode = "24h"
-    setActiveButton()
+    setModeButtons()
     await loadHistory().catch(console.error)
 }
 
-btn7.onclick = async () => {
+btn7d.onclick = async function() {
     mode = "7d"
-    setActiveButton()
+    setModeButtons()
     await loadHistory().catch(console.error)
 }
 
-btn30.onclick = async () => {
+btn30d.onclick = async function() {
     mode = "30d"
-    setActiveButton()
+    setModeButtons()
     await loadHistory().catch(console.error)
 }
 
-setActiveButton()
+setModeButtons()
 renderChart()
 refreshAll()
-gameTimer = setInterval(loadGame, 10000)
-historyTimer = setInterval(loadHistory, 30000)
+setInterval(loadGame, 10000)
+setInterval(loadHistory, 30000)
 </script>
 </body>
 </html>
