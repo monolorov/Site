@@ -7,14 +7,20 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
-    --bg: #0a0a0a;
+    --bg: #090909;
     --panel: #101010;
     --panel2: #141414;
     --border: rgba(255,255,255,0.06);
     --text: #ffffff;
-    --muted: #8a8a8a;
+    --muted: #8b8b8b;
     --accent: #7fb6ff;
     --accentSoft: rgba(127, 182, 255, 0.14);
+    --green: #77d08a;
+    --greenSoft: rgba(119, 208, 138, 0.14);
+    --red: #ff7d7d;
+    --redSoft: rgba(255, 125, 125, 0.12);
+    --gold: #ffd36f;
+    --goldSoft: rgba(255, 211, 111, 0.12);
 }
 
 * {
@@ -24,7 +30,10 @@
 html, body {
     margin: 0;
     padding: 0;
-    background: var(--bg);
+    background:
+        radial-gradient(circle at top left, rgba(127,182,255,0.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(255,255,255,0.03), transparent 24%),
+        var(--bg);
     color: var(--text);
     font-family: Inter, Arial, sans-serif;
 }
@@ -35,24 +44,48 @@ body {
 
 .wrap {
     width: 100%;
-    max-width: 1220px;
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 26px 18px 42px;
+    padding: 28px 18px 42px;
 }
 
 .topbar {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    gap: 16px;
-    margin-bottom: 16px;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.brandIcon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    border: 1px solid rgba(127,182,255,0.18);
+    background: linear-gradient(180deg, rgba(127,182,255,0.16), rgba(127,182,255,0.04));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.brandIcon svg {
+    width: 24px;
+    height: 24px;
+    color: #dceafe;
 }
 
 .title {
     margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
 }
 
 .sub {
@@ -62,12 +95,28 @@ body {
 }
 
 .status {
-    color: var(--muted);
-    font-size: 12px;
-    white-space: nowrap;
+    text-align: right;
 }
 
-.stats {
+.statusMain {
+    color: var(--text);
+    font-size: 13px;
+}
+
+.statusSub {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.secondaryGrid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
@@ -77,37 +126,98 @@ body {
 .card {
     background: linear-gradient(180deg, var(--panel), var(--panel2));
     border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 20px 22px;
-    min-height: 118px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    border-radius: 20px;
+    padding: 18px 20px;
+    min-height: 124px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255,255,255,0.03), transparent 32%);
+    pointer-events: none;
+}
+
+.cardHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
 }
 
 .cardLabel {
     color: var(--muted);
     font-size: 14px;
-    margin-bottom: 10px;
+}
+
+.cardIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.03);
+    color: #f5f7ff;
+    flex-shrink: 0;
+}
+
+.cardIcon svg {
+    width: 18px;
+    height: 18px;
 }
 
 .cardValue {
-    font-size: 34px;
-    font-weight: 700;
-    letter-spacing: -0.04em;
+    position: relative;
+    z-index: 1;
+    margin-top: 12px;
+    font-size: 35px;
+    font-weight: 800;
+    letter-spacing: -0.05em;
     line-height: 1;
 }
 
 .cardMeta {
+    position: relative;
+    z-index: 1;
     margin-top: 12px;
     color: var(--muted);
     font-size: 12px;
 }
 
+.cardAccentBlue .cardIcon {
+    border-color: rgba(127,182,255,0.18);
+    background: rgba(127,182,255,0.08);
+}
+
+.cardAccentGreen .cardIcon {
+    border-color: rgba(119,208,138,0.18);
+    background: rgba(119,208,138,0.08);
+}
+
+.cardAccentRed .cardIcon {
+    border-color: rgba(255,125,125,0.16);
+    background: rgba(255,125,125,0.08);
+}
+
+.cardAccentGold .cardIcon {
+    border-color: rgba(255,211,111,0.18);
+    background: rgba(255,211,111,0.08);
+}
+
 .panel {
     background: linear-gradient(180deg, var(--panel), var(--panel2));
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: 22px;
     padding: 18px 18px 14px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
 }
 
 .panelHead {
@@ -118,10 +228,39 @@ body {
     margin-bottom: 14px;
 }
 
+.panelTitleWrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.panelIcon {
+    width: 38px;
+    height: 38px;
+    border-radius: 13px;
+    border: 1px solid rgba(127,182,255,0.16);
+    background: rgba(127,182,255,0.08);
+    color: #ebf3ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panelIcon svg {
+    width: 18px;
+    height: 18px;
+}
+
 .panelTitle {
     font-size: 15px;
     font-weight: 700;
     letter-spacing: -0.02em;
+}
+
+.panelSub {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
 }
 
 .controls {
@@ -132,11 +271,11 @@ body {
 }
 
 .modeBtn {
-    height: 34px;
+    height: 36px;
     padding: 0 16px;
     border-radius: 12px;
     border: 1px solid var(--border);
-    background: rgba(255,255,255,0.01);
+    background: rgba(255,255,255,0.015);
     color: var(--text);
     cursor: pointer;
     font-size: 14px;
@@ -144,20 +283,20 @@ body {
 }
 
 .modeBtn:hover {
-    border-color: rgba(127, 182, 255, 0.35);
-    background: rgba(255,255,255,0.025);
+    border-color: rgba(127,182,255,0.35);
+    background: rgba(255,255,255,0.03);
 }
 
 .modeBtn.active {
     border-color: var(--accent);
     background: var(--accentSoft);
-    box-shadow: inset 0 0 0 1px rgba(127, 182, 255, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(127,182,255,0.08);
 }
 
 .chartWrap {
     position: relative;
-    height: 420px;
-    padding: 14px 14px 6px;
+    height: 430px;
+    padding: 10px 10px 4px;
 }
 
 .emptyState {
@@ -183,9 +322,19 @@ body {
     line-height: 1.45;
 }
 
-@media (max-width: 900px) {
-    .stats {
+@media (max-width: 980px) {
+    .statsGrid,
+    .secondaryGrid {
         grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .status {
+        text-align: left;
     }
 
     .panelHead {
@@ -194,8 +343,8 @@ body {
     }
 
     .chartWrap {
-        height: 320px;
-        padding: 4px 0 0;
+        height: 330px;
+        padding: 2px 0 0;
     }
 }
 </style>
@@ -203,36 +352,129 @@ body {
 <body>
 <div class="wrap">
     <div class="topbar">
-        <div>
-            <h1 class="title">DM ARENA</h1>
-            <div class="sub">Roblox analytics dashboard</div>
+        <div class="brand">
+            <div class="brandIcon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M4 17L9.5 11.5L13 15L20 8"></path>
+                    <path d="M15 8H20V13"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="title">DM ARENA</h1>
+                <div class="sub">Roblox analytics dashboard</div>
+            </div>
         </div>
-        <div class="status" id="statusText">Waiting for first update...</div>
+
+        <div class="status">
+            <div class="statusMain" id="statusText">Waiting for first update...</div>
+            <div class="statusSub" id="statusSub">Universe ID: 8960617980</div>
+        </div>
     </div>
 
-    <div class="stats">
-        <div class="card">
-            <div class="cardLabel">Online players</div>
+    <div class="statsGrid">
+        <div class="card cardAccentBlue">
+            <div class="cardHead">
+                <div class="cardLabel">Online players</div>
+                <div class="cardIcon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9.5" cy="7" r="4"></circle>
+                        <path d="M20 8v6"></path>
+                        <path d="M23 11h-6"></path>
+                    </svg>
+                </div>
+            </div>
             <div class="cardValue" id="online">—</div>
-            <div class="cardMeta" id="onlineMeta">Live snapshot</div>
+            <div class="cardMeta">Live snapshot</div>
         </div>
 
-        <div class="card">
-            <div class="cardLabel">Visits</div>
+        <div class="card cardAccentGold">
+            <div class="cardHead">
+                <div class="cardLabel">Visits</div>
+                <div class="cardIcon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M3 12h18"></path>
+                        <path d="M3 6h18"></path>
+                        <path d="M3 18h18"></path>
+                    </svg>
+                </div>
+            </div>
             <div class="cardValue" id="visits">—</div>
             <div class="cardMeta">Total experience visits</div>
         </div>
 
-        <div class="card">
-            <div class="cardLabel">Favorites</div>
+        <div class="card cardAccentBlue">
+            <div class="cardHead">
+                <div class="cardLabel">Favorites</div>
+                <div class="cardIcon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 17.4L5.8 21l1.7-7.1L2 9.2l7.3-.6L12 2l2.7 6.6l7.3.6l-5.5 4.7l1.7 7.1z"></path>
+                    </svg>
+                </div>
+            </div>
             <div class="cardValue" id="favorites">—</div>
-            <div class="cardMeta">Total favorites</div>
+            <div class="cardMeta">Players who favorited the game</div>
+        </div>
+    </div>
+
+    <div class="secondaryGrid">
+        <div class="card cardAccentGreen">
+            <div class="cardHead">
+                <div class="cardLabel">Likes</div>
+                <div class="cardIcon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-1 5l-3 4v11h10.3a2 2 0 0 0 2-1.6l1.4-7A2 2 0 0 0 18.7 11H14"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="cardValue" id="likes">—</div>
+            <div class="cardMeta">Upvotes</div>
+        </div>
+
+        <div class="card cardAccentRed">
+            <div class="cardHead">
+                <div class="cardLabel">Dislikes</div>
+                <div class="cardIcon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
+                        <path d="M10 15v4a3 3 0 0 0 3 3l1-5l3-4V2H6.7a2 2 0 0 0-2 1.6l-1.4 7A2 2 0 0 0 5.3 13H10"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="cardValue" id="dislikes">—</div>
+            <div class="cardMeta">Downvotes</div>
+        </div>
+
+        <div class="card cardAccentGold">
+            <div class="cardHead">
+                <div class="cardLabel">Approval rating</div>
+                <div class="cardIcon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M3 12l4-4l4 4l8-8l2 2l-10 10l-6-6z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="cardValue" id="rating">—</div>
+            <div class="cardMeta" id="votesMeta">Total votes: —</div>
         </div>
     </div>
 
     <div class="panel">
         <div class="panelHead">
-            <div class="panelTitle">Player activity</div>
+            <div class="panelTitleWrap">
+                <div class="panelIcon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M4 17L9.5 11.5L13 15L20 8"></path>
+                        <path d="M15 8H20V13"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="panelTitle">Player activity</div>
+                    <div class="panelSub">Online history by collected snapshots</div>
+                </div>
+            </div>
+
             <div class="controls">
                 <button class="modeBtn active" id="btn1h" type="button">1H</button>
                 <button class="modeBtn" id="btn24h" type="button">24H</button>
@@ -257,8 +499,12 @@ const historyApiBase = "/api/history"
 const onlineEl = document.getElementById("online")
 const visitsEl = document.getElementById("visits")
 const favoritesEl = document.getElementById("favorites")
-const onlineMeta = document.getElementById("onlineMeta")
+const likesEl = document.getElementById("likes")
+const dislikesEl = document.getElementById("dislikes")
+const ratingEl = document.getElementById("rating")
+const votesMeta = document.getElementById("votesMeta")
 const statusText = document.getElementById("statusText")
+const statusSub = document.getElementById("statusSub")
 const errorBox = document.getElementById("errorBox")
 const emptyState = document.getElementById("emptyState")
 
@@ -267,7 +513,7 @@ const btn24h = document.getElementById("btn24h")
 const btn7d = document.getElementById("btn7d")
 const btn30d = document.getElementById("btn30d")
 
-let mode = "1h"
+let mode = "24h"
 let currentHistory = []
 
 const numFmt = new Intl.NumberFormat("en-US")
@@ -293,6 +539,11 @@ const dayFmt = new Intl.DateTimeFormat("en-US", {
 function formatNumber(n) {
     if (typeof n !== "number" || Number.isNaN(n)) return "—"
     return numFmt.format(n)
+}
+
+function formatPercent(n) {
+    if (typeof n !== "number" || Number.isNaN(n)) return "—"
+    return `${n.toFixed(1)}%`
 }
 
 function setModeButtons() {
@@ -366,7 +617,7 @@ function normalizeHistory(list) {
 
 const canvas = document.getElementById("chart")
 const ctx = canvas.getContext("2d")
-const gradient = ctx.createLinearGradient(0, 0, 0, 420)
+const gradient = ctx.createLinearGradient(0, 0, 0, 430)
 gradient.addColorStop(0, "rgba(127, 182, 255, 0.28)")
 gradient.addColorStop(1, "rgba(127, 182, 255, 0)")
 
@@ -502,9 +753,13 @@ async function loadGame() {
 
     onlineEl.textContent = formatNumber(Math.round(data.playing))
     visitsEl.textContent = formatNumber(data.visits)
-    favoritesEl.textContent = formatNumber(data.favoritedCount)
-    onlineMeta.textContent = "Universe ID: " + data.universeId
+    favoritesEl.textContent = formatNumber(data.favorites)
+    likesEl.textContent = formatNumber(data.likes)
+    dislikesEl.textContent = formatNumber(data.dislikes)
+    ratingEl.textContent = formatPercent(Number(data.rating || 0))
+    votesMeta.textContent = "Total votes: " + formatNumber(Number(data.totalVotes || 0))
     statusText.textContent = "Last update: " + new Date().toLocaleTimeString()
+    statusSub.textContent = "Universe ID: " + data.universeId
 }
 
 async function loadHistory() {
