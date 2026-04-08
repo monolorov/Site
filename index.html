@@ -16,11 +16,8 @@
     --accent: #7fb6ff;
     --accentSoft: rgba(127, 182, 255, 0.14);
     --green: #77d08a;
-    --greenSoft: rgba(119, 208, 138, 0.14);
     --red: #ff7d7d;
-    --redSoft: rgba(255, 125, 125, 0.12);
     --gold: #ffd36f;
-    --goldSoft: rgba(255, 211, 111, 0.12);
 }
 
 * {
@@ -101,6 +98,7 @@ body {
 .statusMain {
     color: var(--text);
     font-size: 13px;
+    font-weight: 600;
 }
 
 .statusSub {
@@ -476,8 +474,8 @@ body {
             </div>
 
             <div class="controls">
-                <button class="modeBtn active" id="btn1h" type="button">1H</button>
-                <button class="modeBtn" id="btn24h" type="button">24H</button>
+                <button class="modeBtn" id="btn1h" type="button">1H</button>
+                <button class="modeBtn active" id="btn24h" type="button">24H</button>
                 <button class="modeBtn" id="btn7d" type="button">7D</button>
                 <button class="modeBtn" id="btn30d" type="button">30D</button>
             </div>
@@ -746,7 +744,14 @@ async function loadGame() {
     })
 
     if (!res.ok) {
-        throw new Error("Game HTTP " + res.status)
+        let msg = "Game HTTP " + res.status
+        try {
+            const errJson = await res.json()
+            if (errJson && errJson.error) {
+                msg = errJson.error
+            }
+        } catch {}
+        throw new Error(msg)
     }
 
     const data = await res.json()
@@ -789,39 +794,63 @@ async function refreshAll() {
     } catch (err) {
         console.error(err)
         statusText.textContent = "Update failed"
-        setError("Failed to load analytics data. Check /api/game, /api/history and your collector.")
+        setError("Failed to load analytics data. " + (err?.message || "Unknown error"))
     }
 }
 
 btn1h.onclick = async function() {
     mode = "1h"
     setModeButtons()
-    await loadHistory().catch(console.error)
+    await loadHistory().catch(err => {
+        console.error(err)
+        setError("Failed to load history. " + (err?.message || "Unknown error"))
+    })
 }
 
 btn24h.onclick = async function() {
     mode = "24h"
     setModeButtons()
-    await loadHistory().catch(console.error)
+    await loadHistory().catch(err => {
+        console.error(err)
+        setError("Failed to load history. " + (err?.message || "Unknown error"))
+    })
 }
 
 btn7d.onclick = async function() {
     mode = "7d"
     setModeButtons()
-    await loadHistory().catch(console.error)
+    await loadHistory().catch(err => {
+        console.error(err)
+        setError("Failed to load history. " + (err?.message || "Unknown error"))
+    })
 }
 
 btn30d.onclick = async function() {
     mode = "30d"
     setModeButtons()
-    await loadHistory().catch(console.error)
+    await loadHistory().catch(err => {
+        console.error(err)
+        setError("Failed to load history. " + (err?.message || "Unknown error"))
+    })
 }
 
 setModeButtons()
 renderChart()
 refreshAll()
-setInterval(loadGame, 10000)
-setInterval(loadHistory, 30000)
+setInterval(() => {
+    loadGame().catch(err => {
+        console.error(err)
+        statusText.textContent = "Update failed"
+        setError("Failed to load game data. " + (err?.message || "Unknown error"))
+    })
+}, 10000)
+
+setInterval(() => {
+    loadHistory().catch(err => {
+        console.error(err)
+        setError("Failed to load history. " + (err?.message || "Unknown error"))
+    })
+}, 30000)
 </script>
 </body>
 </html>
