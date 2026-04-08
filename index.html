@@ -157,7 +157,7 @@ body {
 .chartWrap {
     position: relative;
     height: 420px;
-    padding: 8px 8px 2px;
+    padding: 14px 14px 6px;
 }
 
 .emptyState {
@@ -342,14 +342,23 @@ function normalizeHistory(list) {
         }))
         .sort((a, b) => a.t - b.t)
 
-    if (mode !== "1h") {
-        return clean
+    let bucketSize = 30000
+
+    if (mode === "1h") {
+        bucketSize = 60000
+    } else if (mode === "24h") {
+        bucketSize = 5 * 60 * 1000
+    } else if (mode === "7d") {
+        bucketSize = 60 * 60 * 1000
+    } else if (mode === "30d") {
+        bucketSize = 6 * 60 * 60 * 1000
     }
 
     const grouped = new Map()
 
     for (const point of clean) {
-        const bucket = Math.floor(point.t / 30000) * 30000
+        const bucket = Math.floor(point.t / bucketSize) * bucketSize
+
         if (!grouped.has(bucket)) {
             grouped.set(bucket, {
                 t: bucket,
@@ -388,11 +397,11 @@ const chart = new Chart(ctx, {
             borderWidth: 2,
             pointRadius: 0,
             pointHoverRadius: 4,
-            pointHitRadius: 16,
+            pointHitRadius: 18,
             pointHoverBackgroundColor: "#ffffff",
             pointHoverBorderColor: "#7fb6ff",
             pointHoverBorderWidth: 2,
-            tension: 0.28,
+            tension: 0.18,
             cubicInterpolationMode: "monotone"
         }]
     },
@@ -405,10 +414,10 @@ const chart = new Chart(ctx, {
         },
         layout: {
             padding: {
-                top: 8,
-                right: 10,
-                bottom: 2,
-                left: 2
+                top: 10,
+                right: 18,
+                bottom: 6,
+                left: 10
             }
         },
         interaction: {
@@ -441,7 +450,7 @@ const chart = new Chart(ctx, {
         },
         scales: {
             x: {
-                offset: false,
+                offset: true,
                 grid: {
                     color: "rgba(255,255,255,0.04)",
                     drawBorder: false,
@@ -452,10 +461,10 @@ const chart = new Chart(ctx, {
                 },
                 ticks: {
                     color: "#7f7f7f",
-                    maxTicksLimit: 6,
+                    maxTicksLimit: 5,
                     maxRotation: 0,
                     autoSkip: true,
-                    padding: 12,
+                    padding: 14,
                     callback(value, index) {
                         return getPointLabel(currentHistory[index], false)
                     }
@@ -463,7 +472,7 @@ const chart = new Chart(ctx, {
             },
             y: {
                 beginAtZero: true,
-                grace: "8%",
+                grace: "10%",
                 grid: {
                     color: "rgba(255,255,255,0.04)",
                     drawBorder: false
