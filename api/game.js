@@ -2,46 +2,31 @@ export default async function handler(req, res) {
     const universeId = "8960617980"
 
     try {
-        const [gameRes, favRes, votesRes] = await Promise.all([
+        const [gameRes, favRes, votesRes] = await Promise.allSettled([
             fetch(`https://games.roblox.com/v1/games?universeIds=${universeId}`, {
                 headers: {
                     Accept: "application/json"
                 }
             }),
-            fetch(`https://apis.roblox.com/interactions/v1/games/${universeId}/favorites/count`, {
+            fetch(`https://games.roblox.com/v1/games/${universeId}/favorites/count`, {
                 headers: {
                     Accept: "application/json"
                 }
             }),
-            fetch(`https://games.roblox.com/v1/games/${universeId}/votes`, {
+            fetch(`https://games.roblox.com/v1/games/votes?universeIds=${universeId}`, {
                 headers: {
                     Accept: "application/json"
                 }
             })
         ])
 
-        if (!gameRes.ok) {
-            return res.status(gameRes.status).json({
+        if (gameRes.status !== "fulfilled" || !gameRes.value.ok) {
+            return res.status(gameRes.status === "fulfilled" ? gameRes.value.status : 500).json({
                 error: "Failed to fetch game data"
             })
         }
 
-        if (!favRes.ok) {
-            return res.status(favRes.status).json({
-                error: "Failed to fetch favorites"
-            })
-        }
-
-        if (!votesRes.ok) {
-            return res.status(votesRes.status).json({
-                error: "Failed to fetch votes"
-            })
-        }
-
-        const gameJson = await gameRes.json()
-        const favJson = await favRes.json()
-        const votesJson = await votesRes.json()
-
+        const gameJson = await gameRes.value.json()
         const game = Array.isArray(gameJson.data) ? gameJson.data[0] : null
 
         if (!game) {
@@ -50,24 +35,39 @@ export default async function handler(req, res) {
             })
         }
 
-        const likes = Number(votesJson.upVotes || 0)
-        const dislikes = Number(votesJson.downVotes || 0)
+        let favorites = 0
+        if (favRes.status === "fulfilled" && favRes.value.ok) {
+            const favJson = await favRes.value.json()
+            favorites = Number(favJson.favoritesCount ?? favJson.count ?? 0)
+        }
+
+        let likes = 0
+        let dislikes = 0
+
+        if (votesRes.status === "fulfilled" && votesRes.value.ok) {
+            const votesJson = await votesRes.value.json()
+            const voteItem = Array.isArray(votesJson.data) ? votesJson.data[0] : null
+
+            likes = Number(voteItem?.upVotes ?? 0)
+            dislikes = Number(voteItem?.downVotes ?? 0)
+        }
+
         const totalVotes = likes + dislikes
-        const rating = totalVotes > 0 ? Number(((likes / totalVotes) * 100).toFixed(2)) : 0
+        const rating = totalVotes > 0 ? (likes / totalVotes) * 100 : 0
 
         res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=120")
 
         return res.status(200).json({
             universeId,
-            placeId: game.rootPlaceId,
-            name: game.name,
+            placeId: Number(game.rootPlaceId || 0),
+            name: game.name || "DM ARENA",
             playing: Number(game.playing || 0),
             visits: Number(game.visits || 0),
-            favorites: Number(favJson.count || 0),
+            favorites,
             likes,
             dislikes,
             totalVotes,
-            rating,
+            rating: Number(rating.toFixed(1)),
             updatedAt: Date.now()
         })
     } catch (err) {
