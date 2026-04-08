@@ -333,49 +333,35 @@ function getPointLabel(point, detailed) {
     return dayFmt.format(date)
 }
 
+function getBucketSize() {
+    if (mode === "1h") return 60000
+    if (mode === "24h") return 5 * 60 * 1000
+    if (mode === "7d") return 60 * 60 * 1000
+    if (mode === "30d") return 6 * 60 * 60 * 1000
+    return 60000
+}
+
 function normalizeHistory(list) {
     const clean = list
         .filter(point => point && typeof point.t === "number" && typeof point.v === "number")
         .map(point => ({
             t: point.t,
-            v: point.v
+            v: Math.max(0, Math.round(point.v))
         }))
         .sort((a, b) => a.t - b.t)
 
-    let bucketSize = 30000
-
-    if (mode === "1h") {
-        bucketSize = 60000
-    } else if (mode === "24h") {
-        bucketSize = 5 * 60 * 1000
-    } else if (mode === "7d") {
-        bucketSize = 60 * 60 * 1000
-    } else if (mode === "30d") {
-        bucketSize = 6 * 60 * 60 * 1000
-    }
-
+    const bucketSize = getBucketSize()
     const grouped = new Map()
 
     for (const point of clean) {
         const bucket = Math.floor(point.t / bucketSize) * bucketSize
-
-        if (!grouped.has(bucket)) {
-            grouped.set(bucket, {
-                t: bucket,
-                values: [point.v]
-            })
-        } else {
-            grouped.get(bucket).values.push(point.v)
-        }
+        grouped.set(bucket, {
+            t: bucket,
+            v: point.v
+        })
     }
 
-    return Array.from(grouped.values()).map(item => {
-        const avg = item.values.reduce((sum, value) => sum + value, 0) / item.values.length
-        return {
-            t: item.t,
-            v: Math.round(avg * 100) / 100
-        }
-    }).sort((a, b) => a.t - b.t)
+    return Array.from(grouped.values()).sort((a, b) => a.t - b.t)
 }
 
 const canvas = document.getElementById("chart")
@@ -401,8 +387,8 @@ const chart = new Chart(ctx, {
             pointHoverBackgroundColor: "#ffffff",
             pointHoverBorderColor: "#7fb6ff",
             pointHoverBorderWidth: 2,
-            tension: 0.18,
-            cubicInterpolationMode: "monotone"
+            tension: 0,
+            cubicInterpolationMode: "default"
         }]
     },
     options: {
@@ -443,7 +429,7 @@ const chart = new Chart(ctx, {
                         return getPointLabel(point, true)
                     },
                     label(item) {
-                        return "Online: " + formatNumber(item.parsed.y)
+                        return "Online: " + formatNumber(Math.round(item.parsed.y))
                     }
                 }
             }
@@ -485,7 +471,7 @@ const chart = new Chart(ctx, {
                     precision: 0,
                     padding: 10,
                     callback(value) {
-                        return formatNumber(value)
+                        return formatNumber(Math.round(value))
                     }
                 }
             }
@@ -514,7 +500,7 @@ async function loadGame() {
 
     const data = await res.json()
 
-    onlineEl.textContent = formatNumber(data.playing)
+    onlineEl.textContent = formatNumber(Math.round(data.playing))
     visitsEl.textContent = formatNumber(data.visits)
     favoritesEl.textContent = formatNumber(data.favoritedCount)
     onlineMeta.textContent = "Universe ID: " + data.universeId
