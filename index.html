@@ -60,29 +60,12 @@ body {
     gap: 14px;
 }
 
-.brandIcon {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    border: 1px solid rgba(127,182,255,0.18);
-    background: linear-gradient(180deg, rgba(127,182,255,0.16), rgba(127,182,255,0.04));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-}
-
-.brandIcon svg {
-    width: 24px;
-    height: 24px;
-    color: #dceafe;
-}
-
-.title {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: -0.04em;
+.brandLogo {
+    height: 48px;
+    width: auto;
+    display: block;
+    object-fit: contain;
+    filter: drop-shadow(0 0 18px rgba(127, 182, 255, 0.1));
 }
 
 .sub {
@@ -344,23 +327,21 @@ body {
         height: 330px;
         padding: 2px 0 0;
     }
+
+    .brandLogo {
+        height: 40px;
+    }
 }
 </style>
 </head>
 <body>
 <div class="wrap">
     <div class="topbar">
-        <div class="brand">
-            <div class="brandIcon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M4 17L9.5 11.5L13 15L20 8"></path>
-                    <path d="M15 8H20V13"></path>
-                </svg>
+        <div>
+            <div class="brand">
+                <img class="brandLogo" src="https://media.discordapp.net/attachments/1129723268488761384/1491236118606119043/vxsf37k.png?ex=69d6f55c&is=69d5a3dc&hm=e49f0752c3062619e25254f3b8035147198248c1ca827f7235c7f36d40e63c44&=&format=webp&quality=lossless&width=450&height=77" alt="DM ARENA">
             </div>
-            <div>
-                <h1 class="title">DM ARENA</h1>
-                <div class="sub">Roblox analytics dashboard</div>
-            </div>
+            <div class="sub">Roblox analytics dashboard</div>
         </div>
 
         <div class="status">
@@ -837,6 +818,7 @@ btn30d.onclick = async function() {
 setModeButtons()
 renderChart()
 refreshAll()
+
 setInterval(() => {
     loadGame().catch(err => {
         console.error(err)
