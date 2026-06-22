@@ -314,7 +314,10 @@ function setVal(id, value) {
   if(current===value) return;
   const diff=Math.abs(value-current);
   const rel=diff/Math.max(value,current,1);
-  const duration=rel<0.015?3000:rel<0.06?1800:rel<0.15?1000:700;
+  // Tiny change (routine noise ±1-9): instant update, no animation
+  if(diff<10||rel<0.02){ el.textContent=fmt(value); return; }
+  // Meaningful change: animate
+  const duration=rel<0.08?1200:rel<0.2?900:700;
   animateTo(el,current,value,duration);
 }
   countUp(el, value);
