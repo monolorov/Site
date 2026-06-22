@@ -417,14 +417,24 @@ function setActiveBtn(active){
   ["btn1h","btn24h","btn7d","btn30d"].forEach(id=>{ const el=$(id); if(!el) return; el.style.background=el.id===active?"#1a1a1a":"transparent"; el.style.color=el.id===active?"#fff":"#666"; el.style.boxShadow=el.id===active?"0 1px 3px rgba(0,0,0,.4)":"none"; });
 }
 
+async function fetchWithTimeout(url,ms){
+  ms=ms||9000;
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),ms);
+  try{
+    const res=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store",signal:ctrl.signal});
+    clearTimeout(tid); return res;
+  }catch(e){ clearTimeout(tid); throw e.name==="AbortError"?new Error("Request timed out"):e; }
+}
+
 async function fetchHistory(range){
-  const res=await fetch("/api/history?range="+encodeURIComponent(range),{headers:{Accept:"application/json"},cache:"no-store"});
+  const res=await fetchWithTimeout("/api/history?range="+encodeURIComponent(range));
   if(!res.ok) throw new Error("HTTP "+res.status);
   const json=await res.json(); return Array.isArray(json.data)?json.data:[];
 }
 
 async function loadGame(){
-  const res=await fetch("/api/game",{headers:{Accept:"application/json"},cache:"no-store"});
+  const res=await fetchWithTimeout("/api/game");
   if(!res.ok){ let m="HTTP "+res.status; try{const j=await res.json();if(j.error)m=j.error;}catch{} throw new Error(m); }
   const data=await res.json();
   const online=Math.round(data.playing||0), visits=Number(data.visits||0), favorites=Number(data.favorites||0);
