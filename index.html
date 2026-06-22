@@ -252,7 +252,7 @@ function normalizeHistory(list) {
   const clean = list.filter(p=>p&&typeof p.t==="number"&&typeof p.v==="number")
     .map(p=>({t:p.t, v:Math.max(0,Math.round(p.v))})).sort((a,b)=>a.t-b.t);
   const grouped = new Map();
-  for (const p of clean) { const b=Math.floor(p.t/bucketSize)*bucketSize; grouped.set(b,{t:b,v:p.v}); }
+  for (const p of clean) { const b=Math.floor(p.t/bucketSize)*bucketSize; const prev=grouped.get(b); grouped.set(b,{t:b,v:prev?Math.max(prev.v,p.v):p.v}); }
   return Array.from(grouped.values()).sort((a,b)=>a.t-b.t);
 }
 
