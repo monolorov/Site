@@ -278,24 +278,45 @@ const $ = id => document.getElementById(id);
 function fmt(n) { return (typeof n === "number" && !isNaN(n)) ? numFmt.format(n) : "—"; }
 function fmtPct(n) { return (typeof n === "number" && !isNaN(n)) ? n.toFixed(1) + "%" : "—"; }
 
-function countUp(el, target, duration) {
-  if (!el) return;
-  duration = duration || 900;
-  el.innerHTML = "";
-  const start = performance.now();
-  const step = (now) => {
-    const t = Math.min((now - start) / duration, 1);
-    const ease = 1 - Math.pow(1 - t, 3);
-    el.textContent = fmt(Math.round(target * ease));
-    if (t < 1) requestAnimationFrame(step);
-    else el.textContent = fmt(target);
+function countUp(el, target) {
+  if(!el) return;
+  el.innerHTML="";
+  const start=performance.now();
+  const step=(now)=>{
+    const t=Math.min((now-start)/900,1);
+    const ease=1-Math.pow(1-t,3);
+    el.textContent=fmt(Math.round(target*ease));
+    if(t<1) requestAnimationFrame(step);
+    else el.textContent=fmt(target);
   };
   requestAnimationFrame(step);
 }
 
+function animateTo(el, from, to, duration) {
+  if(!el) return;
+  if(el._rafId) cancelAnimationFrame(el._rafId);
+  const start=performance.now();
+  const step=(now)=>{
+    const t=Math.min((now-start)/duration,1);
+    const ease=t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    el.textContent=fmt(Math.round(from+(to-from)*ease));
+    if(t<1){el._rafId=requestAnimationFrame(step);}
+    else{el.textContent=fmt(to);el._rafId=null;}
+  };
+  el._rafId=requestAnimationFrame(step);
+}
+
 function setVal(id, value) {
-  const el = $(id); if (!el) return;
-  if (typeof value !== "number" || isNaN(value)) { el.textContent = "—"; return; }
+  const el=$(id); if(!el) return;
+  if(typeof value!=="number"||isNaN(value)){ el.textContent="—"; return; }
+  if(el.querySelector&&el.querySelector(".skel-val")){ countUp(el,value); return; }
+  const current=parseInt((el.textContent||"0").replace(/[^0-9]/g,""))||0;
+  if(current===value) return;
+  const diff=Math.abs(value-current);
+  const rel=diff/Math.max(value,current,1);
+  const duration=rel<0.015?3000:rel<0.06?1800:rel<0.15?1000:700;
+  animateTo(el,current,value,duration);
+}
   countUp(el, value);
 }
 
