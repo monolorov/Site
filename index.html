@@ -320,8 +320,6 @@ function setVal(id, value) {
   const duration=rel<0.08?1200:rel<0.2?900:700;
   animateTo(el,current,value,duration);
 }
-  countUp(el, value);
-}
 
 function drawGauge(pct) {
   const canvas = $("gaugeCanvas"); if (!canvas) return;
